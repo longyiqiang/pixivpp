@@ -3,7 +3,6 @@ import type { FormEvent } from "react";
 import type { NovelSummary } from "./domain/novel";
 import { filterAndSort, mergeNovels } from "./features/search/filter";
 import { createSearchPlan } from "./features/search/plan";
-import { defaultRules } from "./features/search/types";
 import type {
   LocalRules,
   RemoteQuery,
@@ -11,6 +10,21 @@ import type {
 } from "./features/search/types";
 import { Reader } from "./features/reader/Reader";
 import { demoProvider } from "./providers/demo";
+import { Settings } from "./features/settings/Settings";
+import {
+  loadPreferences,
+  savePreferences,
+  sortRules,
+} from "./features/settings/preferences";
+import type { Preferences } from "./features/settings/preferences";
+import {
+  accountStatus,
+  asError,
+  listenAccount,
+  nativeAvailable,
+  pixivProvider,
+} from "./platform/pixiv";
+import type { Account, AccountStatus } from "./platform/pixiv";
 import "./App.css";
 
 const splitWords = (text: string) =>
@@ -22,8 +36,81 @@ const number = (value: number | null) =>
   value === null ? "未知" : value.toLocaleString("zh-CN");
 
 export default function App() {
-  const [keyword, setKeyword] = useState("原创");
-  const [rules, setRules] = useState<LocalRules>(defaultRules);
+  const [preferences, setPreferences] = useState(loadPreferences);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [accountError, setAccountError] = useState("");
+  const [keyword, setKeyword] = useState(preferences.search.keyword);
+  const [target, setTarget] = useState<RemoteQuery["target"]>(
+    preferences.search.target,
+  );
+  const [rules, setRules] = useState<LocalRules>(() =>
+    structuredClone(preferences.search.local),
+  );
+  const provider = preferences.source === "demo" ? demoProvider : pixivProvider;
+  function onAccount(status: AccountStatus) {
+    setAccountError(status.error ?? "");
+    if (!status.error) {
+      request.current?.abort();
+      setItems([]);
+      setCursor(null);
+      setQuery(null);
+      setReading(null);
+      setBusy(false);
+      setError("");
+      setAccount(status.account);
+    }
+  }
+  useEffect(() => {
+    if (!nativeAvailable) return;
+    let alive = true;
+    let unlisten: (() => void) | undefined;
+    let receivedEvent = false;
+    listenAccount((status) => {
+      receivedEvent = true;
+      if (alive) onAccount(status);
+    })
+      .then((stop) => {
+        if (alive) unlisten = stop;
+        else stop();
+      })
+      .catch((reason) => {
+        if (alive) setAccountError(asError(reason).message);
+      });
+    accountStatus()
+      .then((status) => {
+        if (alive && !receivedEvent) onAccount(status);
+      })
+      .catch((reason) => {
+        if (alive && !receivedEvent) setAccountError(asError(reason).message);
+      });
+    return () => {
+      alive = false;
+      unlisten?.();
+    };
+  }, []);
+  function updatePreferences(next: Preferences) {
+    savePreferences(next);
+    if (next.source !== preferences.source) {
+      request.current?.abort();
+      setItems([]);
+      setCursor(null);
+      setQuery(null);
+      setReading(null);
+      setBusy(false);
+    }
+    setPreferences(next);
+  }
+  function restoreDefaults() {
+    request.current?.abort();
+    setBusy(false);
+    setItems([]);
+    setCursor(null);
+    setQuery(null);
+    setKeyword(preferences.search.keyword);
+    setTarget(preferences.search.target);
+    setRules(structuredClone(preferences.search.local));
+  }
   const [items, setItems] = useState<NovelSummary[]>([]);
   const [query, setQuery] = useState<RemoteQuery | null>(null);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -31,6 +118,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [reading, setReading] = useState<string | null>(null);
   const request = useRef<AbortController | null>(null);
+  useEffect(() => window.scrollTo(0, 0), [settingsOpen, reading]);
   const results = useMemo(() => filterAndSort(items, rules), [items, rules]);
   useEffect(() => () => request.current?.abort(), []);
 
@@ -50,7 +138,7 @@ export default function App() {
       setQuery(remote);
     }
     try {
-      const page = await demoProvider.search(remote, next, controller.signal);
+      const page = await provider.search(remote, next, controller.signal);
       if (request.current !== controller || controller.signal.aborted) return;
       setItems((previous) => mergeNovels(reset ? [] : previous, page.items));
       setCursor(page.nextCursor);
@@ -69,7 +157,7 @@ export default function App() {
     try {
       const plan = createSearchPlan({
         keyword,
-        target: "partial_match_for_tags",
+        target,
         local: rules,
       });
       void fetchPage(plan.remote, null, true);
@@ -81,16 +169,49 @@ export default function App() {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <a className="brand" href="/">
+        <button
+          className="brand brand-button"
+          onClick={() => {
+            setSettingsOpen(false);
+            setReading(null);
+          }}
+        >
           pixiv<span>pp</span>
           <small>小说</small>
-        </a>
-        <span className="stage">早期原型 · 演示数据</span>
+        </button>
+        <div className="header-actions">
+          <span className="stage">
+            {preferences.source === "demo"
+              ? "演示样例"
+              : account
+                ? account.name
+                : "未登录"}
+          </span>
+          <button onClick={() => setSettingsOpen(true)}>设置</button>
+        </div>
       </header>
-      {reading ? (
+      {settingsOpen ? (
+        <Settings
+          preferences={preferences}
+          account={account}
+          accountError={accountError}
+          onSave={updatePreferences}
+          onAccount={onAccount}
+          close={() => setSettingsOpen(false)}
+        />
+      ) : reading ? (
         <Reader
           id={reading}
-          provider={demoProvider}
+          provider={provider}
+          author={items.find((item) => item.id === reading)?.author ?? ""}
+          reading={preferences.reading}
+          onReadingChange={(value) => {
+            try {
+              updatePreferences({ ...preferences, reading: value });
+            } catch {
+              setError("阅读设置保存失败。");
+            }
+          }}
           close={() => setReading(null)}
         />
       ) : (
@@ -101,8 +222,22 @@ export default function App() {
             <p>在线发现作品，本地自由筛选。把时间留给阅读。</p>
           </section>
           <div className="demo-notice">
-            当前使用 6 篇虚构样例，尚未接入
-            Pixiv。试试搜索「原创」「日常」或「科幻」。
+            {preferences.source === "demo" ? (
+              "当前使用虚构样例，可搜索「原创」「日常」或「科幻」。"
+            ) : account ? (
+              "从 Pixiv 获取候选，在本地自由筛选和排序。"
+            ) : (
+              <span>
+                请先在
+                <button
+                  className="text-button"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  设置
+                </button>
+                中登录 Pixiv，再开始搜索。
+              </span>
+            )}
           </div>
           <form className="search-bar" onSubmit={search}>
             <label className="sr-only" htmlFor="keyword">
@@ -115,7 +250,21 @@ export default function App() {
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="搜索小说标签"
             />
-            <button className="primary" disabled={busy}>
+            <select
+              aria-label="搜索范围"
+              value={target}
+              onChange={(e) =>
+                setTarget(e.target.value as RemoteQuery["target"])
+              }
+            >
+              <option value="partial_match_for_tags">标签部分匹配</option>
+              <option value="exact_match_for_tags">标签完全匹配</option>
+              <option value="keyword">关键词</option>
+            </select>
+            <button
+              className="primary"
+              disabled={busy || (preferences.source === "pixiv" && !account)}
+            >
               搜索小说
             </button>
           </form>
@@ -128,17 +277,14 @@ export default function App() {
             <aside className="filters">
               <div className="section-top">
                 <h2>精细筛选</h2>
-                <button
-                  className="text-button"
-                  onClick={() => setRules(defaultRules())}
-                >
-                  重置
+                <button className="text-button" onClick={restoreDefaults}>
+                  恢复默认
                 </button>
               </div>
               <label>
                 排除标签<small>完全匹配，多个用逗号分隔</small>
                 <input
-                  value={rules.excludedTags.join(", ")}
+                  value={rules.excludedTags.join(",")}
                   placeholder="恐怖, 悲剧"
                   onChange={(e) =>
                     setRules({
@@ -188,6 +334,7 @@ export default function App() {
                       setRules({
                         ...rules,
                         [field.key]: {
+                          ...rules[field.key],
                           min:
                             e.target.value === ""
                               ? undefined
@@ -222,26 +369,32 @@ export default function App() {
                     onChange={(e) =>
                       setRules({
                         ...rules,
-                        sort: [
-                          {
-                            field: e.target.value as SortField,
-                            direction: "desc",
-                          },
-                          ...(e.target.value === "publishedAt"
-                            ? []
-                            : [
-                                {
-                                  field: "publishedAt" as const,
-                                  direction: "desc" as const,
-                                },
-                              ]),
-                        ],
+                        sort: sortRules(
+                          e.target.value as SortField,
+                          rules.sort[0].direction,
+                        ),
                       })
                     }
                   >
-                    <option value="bookmarks">收藏最多</option>
-                    <option value="views">浏览最多</option>
-                    <option value="publishedAt">最新发布</option>
+                    <option value="bookmarks">收藏数</option>
+                    <option value="views">浏览数</option>
+                    <option value="publishedAt">发布日期</option>
+                  </select>
+                  <select
+                    aria-label="排序方向"
+                    value={rules.sort[0].direction}
+                    onChange={(e) =>
+                      setRules({
+                        ...rules,
+                        sort: sortRules(
+                          rules.sort[0].field,
+                          e.target.value as "asc" | "desc",
+                        ),
+                      })
+                    }
+                  >
+                    <option value="desc">降序</option>
+                    <option value="asc">升序</option>
                   </select>
                 </label>
               </div>
@@ -256,7 +409,7 @@ export default function App() {
                   <p>
                     {query
                       ? "调整筛选条件，或继续获取更多候选。"
-                      : "搜索样例标签，体验筛选和小说阅读流程。"}
+                      : "输入标签或关键词，寻找想读的小说。"}
                   </p>
                 </div>
               )}
@@ -302,7 +455,7 @@ export default function App() {
               )}
               {query && !cursor && !busy && (
                 <p className="end-note">
-                  已读取此查询的全部演示结果；真实搜索的覆盖范围以后端返回为准。
+                  当前没有更多可获取的结果，覆盖范围以 Pixiv 返回为准。
                 </p>
               )}
             </section>

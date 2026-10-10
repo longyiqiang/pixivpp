@@ -501,3 +501,188 @@ footer span {
     font-size: 25px;
   }
 }
+
+.brand-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+.brand-button:hover {
+  background: transparent;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-actions button {
+  font-size: 12px;
+  padding: 8px 14px;
+}
+.search-bar select {
+  font-size: 12px;
+  background: #f7f8f5;
+  border: 0;
+  max-width: 140px;
+}
+.sort-label {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.settings-page {
+  max-width: 900px;
+  margin: 35px auto;
+}
+.settings-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+.settings-heading h1 {
+  margin: 10px 0 0;
+  font-size: 30px;
+}
+.settings-card {
+  background: white;
+  border: 1px solid #e0e6dd;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+.settings-card > p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #718078;
+}
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+.settings-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13px;
+}
+.settings-card .checkbox-label {
+  flex-direction: row;
+  align-items: center;
+}
+.settings-card input[type="range"] {
+  padding: 0;
+  accent-color: #315b49;
+}
+.settings-card input[type="color"] {
+  width: 100%;
+  height: 40px;
+  padding: 4px;
+}
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin: 15px 0;
+}
+.help-text {
+  display: block;
+  font-size: 12px !important;
+  line-height: 1.8;
+  color: #7c877f;
+  margin: 14px 0;
+}
+.settings-card details {
+  margin-top: 22px;
+  border-top: 1px solid #e5e9e2;
+  padding-top: 18px;
+}
+.settings-card summary {
+  font-size: 13px;
+  cursor: pointer;
+  color: #54735f;
+}
+.settings-card details input {
+  margin-bottom: 15px;
+}
+.css-editor {
+  width: 100%;
+  min-height: 150px;
+  padding: 12px;
+  border: 1px solid #dbe2dc;
+  border-radius: 8px;
+  font: 12px/1.7 monospace;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+.range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.range-fields > span {
+  grid-column: 1/-1;
+  font-size: 13px;
+}
+.range-fields input {
+  width: 100%;
+}
+.range-fields label {
+  font-size: 11px;
+  color: #718078;
+}
+.settings-actions {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0 25px;
+}
+.save-message {
+  font-size: 13px;
+  color: #315b49;
+}
+.reader-frame {
+  display: block;
+  border: 0;
+  width: 100%;
+  height: calc(100vh - 225px);
+  min-height: 500px;
+  border-radius: 0 0 14px 14px;
+  background: transparent;
+}
+.reader-status {
+  padding: 24px;
+}
+.settings-card textarea:focus {
+  outline: 2px solid #467765;
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .settings-card {
+    padding: 20px;
+  }
+  .search-bar {
+    flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex-basis: 70%;
+  }
+  .search-bar select {
+    flex: 1;
+    max-width: none;
+  }
+  .header-actions {
+    gap: 6px;
+  }
+  .settings-heading h1 {
+    font-size: 26px;
+  }
+  .reader-frame {
+    height: calc(100vh - 280px);
+  }
+  .sort-label select {
+    max-width: 100px;
+  }
+}

@@ -1,34 +1,32 @@
 # pixivpp
 
-面向小说的开源 Pixiv 阅读器：在线搜索获取作品，在本地自由筛选、排序，打开后在线阅读。
+开源 Pixiv 小说阅读器：在线获取作品，本地自由筛选、排序，按需读取正文。
 
-Pixiv 的部分排序依赖会员功能。pixivpp 希望让用户对已经获取的作品信息自行排序，并减少查找和阅读中的操作。
+解决两个问题：对已获取作品按收藏数、浏览数或日期自行排序；用可调排版减少小说阅读中的操作。排序只覆盖已获取的候选作品，不等于全站人气排名。图片与合集后续开发。
 
-**当前为项目骨架，使用虚构演示数据，尚未接入 Pixiv 登录、搜索或正文接口。**
+## 当前功能
 
-## 小说版范围
+- Pixiv 登录窗口、自动刷新登录、系统安全存储；支持已有 Refresh Token 登录。
+- 真实小说搜索、分页去重、正文读取；标签与标题/简介关键词排除，收藏/浏览/字数区间，升降序排序。
+- 设置页保存阅读偏好与默认搜索条件：主题、字体、字号、行距、段距、宽度、自定义颜色和高级 CSS。
+- 虚构演示数据可在设置中选用；默认使用 Pixiv 在线作品。
 
-- 在线获取候选作品，本地按收藏数、浏览数、发布日期筛选排序。
-- 标签匹配排除、标题和简介关键词排除、字数筛选。
-- 分页去重，明确显示已获取数量；排序仅覆盖已获取的作品。
-- 在线阅读、系列导航、阅读进度；默认主题、常用排版设置、高级 CSS。
-- 不预建作品库；缓存自动管理。图片、漫画和合集展示后续再做。
-
-已搭建：Tauri + React 框架、搜索条件分层、筛选排序逻辑、演示分页、基础阅读主题和字号设置。
-待开发：真实 Pixiv 接入、自动补页与取消、缓存、系列/进度、字体与高级 CSS、移动端验证。
+已验证 macOS Apple Silicon 打包运行。真实账号的完整登录、搜索和正文流程仍需账号实测；其他平台尚未验收，Android 安全存储尚未接入。系列导航、阅读进度、插图、自动补页和缓存待开发。
 
 ## 开发
 
-Node.js 24 LTS；桌面运行另需 [Rust 与 Tauri 系统依赖](https://v2.tauri.app/start/prerequisites/)。
+Node.js 24 LTS，以及 [Rust 与 Tauri 系统依赖](https://v2.tauri.app/start/prerequisites/)。
 
 ```sh
 npm ci
-npm run tauri dev  # 启动独立桌面应用窗口
-npm run dev        # 仅用于浏览器界面预览
-npm run check      # 类型检查、单元测试、前端构建
+npm run tauri dev  # 独立桌面应用
+npm run check      # 前端类型、测试、构建
+cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
+npm run tauri build
 ```
 
-技术栈：Tauri 2 / Rust / React / TypeScript / Vite。已验证 macOS Apple Silicon 独立应用打包与运行，其他平台后续验证。
-模块边界与验收标准见 [开发范围](docs/scope.md)。欢迎通过 Issue 和 PR 参与。
+技术栈：Tauri 2 / Rust / React / TypeScript / Vite。`npm run dev` 仅预览界面，浏览器不提供账号与在线接口功能。
 
-MIT License。非 Pixiv 官方项目，代码许可证不适用于 Pixiv 上的作品内容。
+[开发范围](docs/scope.md) · [接口与登录说明](docs/pixiv-api.md)
+
+MIT License。非 Pixiv 官方项目，接口可能变更；许可证不适用于 Pixiv 作品内容。
