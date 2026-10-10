@@ -216,11 +216,6 @@ export default function App() {
         />
       ) : (
         <>
-          <section className="intro">
-            <span className="eyebrow">寻找故事，按你的方式。</span>
-            <h1>让下一篇，更合心意。</h1>
-            <p>在线发现作品，本地自由筛选。把时间留给阅读。</p>
-          </section>
           <div className="demo-notice">
             {preferences.source === "demo" ? (
               "当前使用虚构样例，可搜索「原创」「日常」或「科幻」。"
@@ -462,9 +457,6 @@ export default function App() {
           </main>
         </>
       )}
-      <footer>
-        pixivpp <span>·</span> 为小说而起步的开源阅读器
-      </footer>
     </div>
   );
 }

@@ -109,29 +109,16 @@ a {
   border-radius: 20px;
   padding: 7px 12px;
 }
-.intro {
-  padding: 50px 0 22px;
-}
 .eyebrow {
   font-size: 12px;
   letter-spacing: 2px;
   color: #668476;
 }
-.intro h1 {
-  font-size: clamp(27px, 4vw, 40px);
-  font-weight: 650;
-  letter-spacing: -1px;
-  margin: 12px 0;
-}
-.intro p {
-  color: #718078;
-  font-size: 14px;
-}
 .demo-notice {
   color: #7c755e;
   font-size: 12px;
   line-height: 1.8;
-  margin: 0 0 16px;
+  margin: 24px 0 16px;
 }
 .search-bar {
   display: flex;
@@ -346,15 +333,6 @@ a {
   font-size: 13px;
   margin-top: 12px;
 }
-footer {
-  text-align: center;
-  padding: 45px 0 26px;
-  color: #94a092;
-  font-size: 11px;
-}
-footer span {
-  margin: 0 10px;
-}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -448,9 +426,6 @@ footer span {
   }
   .stage {
     font-size: 10px;
-  }
-  .intro {
-    padding-top: 32px;
   }
   .workspace {
     grid-template-columns: 1fr;
