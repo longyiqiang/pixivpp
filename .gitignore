@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+.idea/
+*.tsbuildinfo
+src-tauri/target/
+src-tauri/gen/
+*.log
