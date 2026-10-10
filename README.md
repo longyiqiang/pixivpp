@@ -23,12 +23,12 @@ Node.js 24 LTS；桌面运行另需 [Rust 与 Tauri 系统依赖](https://v2.tau
 
 ```sh
 npm ci
-npm run dev        # 浏览器演示，无需 Rust
-npm run tauri dev  # 桌面应用
+npm run tauri dev  # 启动独立桌面应用窗口
+npm run dev        # 仅用于浏览器界面预览
 npm run check      # 类型检查、单元测试、前端构建
 ```
 
-技术栈：Tauri 2 / Rust / React / TypeScript / Vite。桌面优先，移动端适配后续验证。
+技术栈：Tauri 2 / Rust / React / TypeScript / Vite。已验证 macOS Apple Silicon 独立应用打包与运行，其他平台后续验证。
 模块边界与验收标准见 [开发范围](docs/scope.md)。欢迎通过 Issue 和 PR 参与。
 
 MIT License。非 Pixiv 官方项目，代码许可证不适用于 Pixiv 上的作品内容。
